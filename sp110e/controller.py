@@ -206,7 +206,9 @@ class Controller:
             try:
                 if not self._driver.is_connected():
                     await self._driver.connect(self._mac, timeout=self._timeout)
-            except Exception:
+                return
+            except Exception as e:
+                print("EXCEPT",e)
                 if i == self._retries:
                     raise Exception
 

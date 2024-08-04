@@ -70,6 +70,7 @@ class Driver:
 
     async def read_parameters(self) -> dict:
         """Read parameters information from device."""
+        #print("SEND",self)
         self._flag = asyncio.Event()
         await self.send_command(0x10)
         # Wait for callback with data from device
@@ -166,7 +167,7 @@ class Driver:
 
     def _callback_handler(self, sender, data: bytearray):
         """Handle callback with data from device."""
-        if sender == 12:
+        if sender.handle == 12:
             self._handle_parameters(data)
         if self._flag:
             # Let get_info() method to go further
@@ -185,3 +186,4 @@ class Driver:
             'color': [data[8], data[9], data[10]],
             'white': data[11]
         }
+        #print(self,self._parameters)
