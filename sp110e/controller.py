@@ -62,56 +62,58 @@ class Controller:
 
     async def set_ic_model(self, ic_model: str, force: bool = False) -> None:
         """Set device IC model."""
-        await self._connect_and_write_parameters({'ic_model': ic_model}, force=force)
+        await self._connect_and_write_parameters({"ic_model": ic_model}, force=force)
 
     async def set_sequence(self, sequence: str, force: bool = False) -> None:
         """Set device color sequence."""
-        await self._connect_and_write_parameters({'sequence': sequence}, force=force)
+        await self._connect_and_write_parameters({"sequence": sequence}, force=force)
 
     async def set_pixels(self, pixels: int, force: bool = False) -> None:
         """Set number of pixels in LED strip."""
-        await self._connect_and_write_parameters({'pixels': pixels}, force=force)
+        await self._connect_and_write_parameters({"pixels": pixels}, force=force)
 
     async def set_state(self, state: bool, force: bool = False) -> None:
         """Set device state: on/off."""
-        await self._connect_and_write_parameters({'state': state}, force=force)
+        await self._connect_and_write_parameters({"state": state}, force=force)
 
     async def set_mode(self, mode: int, force: bool = False) -> None:
         """Set work mode (0-121). 0 - auto mode (demo)."""
-        await self._connect_and_write_parameters({'mode': mode}, force=force)
+        await self._connect_and_write_parameters({"mode": mode}, force=force)
 
     async def set_speed(self, speed: int, force: bool = False) -> None:
         """Set speed of automatic modes (0-255)."""
-        await self._connect_and_write_parameters({'speed': speed}, force=force)
+        await self._connect_and_write_parameters({"speed": speed}, force=force)
 
     async def set_brightness(self, brightness: int, force: bool = False) -> None:
         """Set LED brightness (0-255)."""
-        await self._connect_and_write_parameters({'brightness': brightness}, force=force)
+        await self._connect_and_write_parameters(
+            {"brightness": brightness}, force=force
+        )
 
     async def set_color(self, color: [int, int, int], force: bool = False) -> None:
         """Set static color in RGB format (0-255)."""
-        await self._connect_and_write_parameters({'color': list(color)}, force=force)
+        await self._connect_and_write_parameters({"color": list(color)}, force=force)
 
     async def set_white(self, white: int, force: bool = False) -> None:
         """Set brightness of white LED (0-255)."""
-        await self._connect_and_write_parameters({'white': white}, force=force)
+        await self._connect_and_write_parameters({"white": white}, force=force)
 
     async def set_preset(self, name: str, force: bool = False):
         """Select defined preset."""
         preset, _ = self._find_preset(name)
         parameters = {
-            'state': preset.get('state', None),
-            'mode': preset.get('mode', None),
-            'speed': preset.get('speed', None),
-            'brightness': preset.get('brightness', None),
-            'color': preset.get('color', None),
-            'white': preset.get('white', None)
+            "state": preset.get("state", None),
+            "mode": preset.get("mode", None),
+            "speed": preset.get("speed", None),
+            "brightness": preset.get("brightness", None),
+            "color": preset.get("color", None),
+            "white": preset.get("white", None),
         }
         await self._connect_and_write_parameters(parameters, force=force)
 
     def add_preset(self, preset: dict):
         """Add preset to control device parameters."""
-        name = preset['name']
+        name = preset["name"]
         _, index = self._find_preset(name)
         if index is not None:
             self._presets[index] = preset
@@ -141,39 +143,39 @@ class Controller:
 
     def get_ic_model(self) -> str:
         """Get device IC model."""
-        return self._driver.get_parameter('ic_model')
+        return self._driver.get_parameter("ic_model")
 
     def get_sequence(self) -> str:
         """Set device color sequence."""
-        return self._driver.get_parameter('sequence')
+        return self._driver.get_parameter("sequence")
 
     def get_pixels(self) -> int:
         """Set number of pixels in LED strip."""
-        return self._driver.get_parameter('pixels')
+        return self._driver.get_parameter("pixels")
 
     def get_state(self) -> bool:
         """Get device state: on/off."""
-        return self._driver.get_parameter('state')
+        return self._driver.get_parameter("state")
 
     def get_mode(self) -> int:
         """Get work mode (0-121). 0 - auto mode (demo)."""
-        return self._driver.get_parameter('mode')
+        return self._driver.get_parameter("mode")
 
     def get_speed(self) -> int:
         """Get speed of automatic modes (0-255)."""
-        return self._driver.get_parameter('speed')
+        return self._driver.get_parameter("speed")
 
     def get_brightness(self) -> int:
         """Get LED brightness (0-255)."""
-        return self._driver.get_parameter('brightness')
+        return self._driver.get_parameter("brightness")
 
     def get_color(self) -> [int, int, int]:
         """Get static color in RGB format (0-255)."""
-        return self._driver.get_parameter('color')
+        return self._driver.get_parameter("color")
 
     def get_white(self) -> int:
         """Get brightness of white LED (0-255)."""
-        return self._driver.get_parameter('white')
+        return self._driver.get_parameter("white")
 
     def get_sequences(self) -> tuple:
         """Get list of supported RGB sequence types."""
@@ -208,16 +210,20 @@ class Controller:
                     await self._driver.connect(self._mac, timeout=self._timeout)
                 return
             except Exception as e:
-                print("EXCEPT",e)
-                if i == self._retries:
+                print("EXCEPT", e)
+                if i == self._retries and self.on_error == "raise":
                     raise Exception
 
-    async def _connect_and_write_parameters(self, parameters: dict, force: bool = False) -> None:
+    async def _connect_and_write_parameters(
+        self, parameters: dict, force: bool = False
+    ) -> None:
         """Write parameter to device with auto connect."""
         parameters_to_write = parameters
         for parameter in list(parameters):
             value = parameters[parameter]
-            if (value is None) or (not force and (value == self._driver.get_parameter(parameter))):
+            if (value is None) or (
+                not force and (value == self._driver.get_parameter(parameter))
+            ):
                 del parameters_to_write[parameter]
         if parameters_to_write:
             await self._connect_with_retries()
@@ -225,7 +231,10 @@ class Controller:
 
     def _find_preset(self, name: str) -> (dict, int):
         """Find defined preset by name."""
-        index = next((index for (index, d) in enumerate(self._presets) if d['name'] == name), None)
+        index = next(
+            (index for (index, d) in enumerate(self._presets) if d["name"] == name),
+            None,
+        )
         if index is not None:
             preset = self._presets[index]
         else:
